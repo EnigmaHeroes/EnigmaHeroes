@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legends Idle: Rise of Realms</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #fff; text-align: center; padding: 20px; }
+    .hero, .enemy { margin: 20px; }
+    .button { background: #28a745; color: #fff; padding: 10px 20px; border: none; cursor: pointer; margin: 10px; }
+    .log { background: #222; padding: 10px; margin-top: 20px; height: 150px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h1>Legends Idle: Rise of Realms</h1>
+  <div class="hero">
+    <h2>Hero</h2>
+    <p>Level: <span id="heroLevel">1</span></p>
+    <p>XP: <span id="heroXP">0</span></p>
+    <p>Coins: <span id="coins">0</span></p>
+    <button class="button" onclick="levelUpHero()">Level Up (Cost: <span id="levelCost">10</span>)</button>
+  </div>
+
+  <div class="enemy">
+    <h2>Enemy</h2>
+    <p>HP: <span id="enemyHP">10</span></p>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <script>
+    let hero = { level: 1, xp: 0, coins: 0, dps: 1 };
+    let enemy = { hp: 10, maxHp: 10 };
+    let levelCost = 10;
+
+    function updateUI() {
+      document.getElementById("heroLevel").innerText = hero.level;
+      document.getElementById("heroXP").innerText = hero.xp;
+      document.getElementById("coins").innerText = hero.coins;
+      document.getElementById("enemyHP").innerText = Math.max(0, Math.floor(enemy.hp));
+      document.getElementById("levelCost").innerText = levelCost;
+    }
+
+    function logMessage(msg) {
+      const log = document.getElementById("log");
+      log.innerHTML = msg + "<br>" + log.innerHTML;
+    }
+
+    function levelUpHero() {
+      if (hero.coins >= levelCost) {
+        hero.coins -= levelCost;
+        hero.level++;
+        hero.dps += 1;
+        levelCost = Math.floor(levelCost * 1.5);
+        logMessage("Hero leveled up to " + hero.level);
+        updateUI();
+      } else {
+        logMessage("Not enough coins to level up.");
+      }
+    }
+
+    function attackEnemy() {
+      enemy.hp -= hero.dps * 0.2;
+      if (enemy.hp <= 0) {
+        let reward = 5 + hero.level * 2;
+        hero.coins += reward;
+        hero.xp += 1;
+        logMessage("Enemy defeated! +" + reward + " coins");
+        enemy.maxHp = Math.floor(enemy.maxHp * 1.3);
+        enemy.hp = enemy.maxHp;
+      }
+      updateUI();
+    }
+
+    setInterval(attackEnemy, 1000);
+    updateUI();
+  </script>
+</body>
+</html>
