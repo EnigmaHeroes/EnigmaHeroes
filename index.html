@@ -1,9 +1,70 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Enigma Heroes</title>
-  </head>
-  <body>
-    <h1>Hello from Enigma Heroes!</h1>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enigma Heroes - Idle RPG</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      margin: 1rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .stats {
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Enigma Heroes: Idle RPG</h1>
+  <p>Click to gain XP and level up your hero!</p>
+
+  <button onclick="gainXP()">Gain XP</button>
+
+  <div class="stats">
+    <p>XP: <span id="xp">0</span></p>
+    <p>Level: <span id="level">1</span></p>
+  </div>
+
+  <script>
+    let xp = 0;
+    let level = 1;
+    const xpEl = document.getElementById('xp');
+    const levelEl = document.getElementById('level');
+
+    function gainXP() {
+      xp += 10;
+      xpEl.textContent = xp;
+
+      const neededXP = level * 100;
+      if (xp >= neededXP) {
+        xp = 0;
+        level += 1;
+        levelEl.textContent = level;
+        xpEl.textContent = xp;
+        alert("🎉 Level Up! You're now level " + level + "!");
+      }
+    }
+  </script>
+</body>
 </html>
