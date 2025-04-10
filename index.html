@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #111;
+      background: linear-gradient(to right, #0f0f0f, #1c1c1c);
       color: #fff;
       text-align: center;
       padding: 20px;
@@ -41,6 +41,7 @@
       padding: 10px;
       border-radius: 8px;
       min-width: 100px;
+      cursor: pointer;
     }
     .talents {
       display: flex;
@@ -56,39 +57,61 @@
       border-radius: 8px;
       width: 150px;
     }
-    .boss {
-      color: #f00;
+    .rank {
       font-weight: bold;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      background: #555;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .tab.active {
+      background: #28a745;
+    }
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
   <h1>Legends Idle: Rise of Realms</h1>
 
-  <div class="section hero">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('battle')">Battle</div>
+    <div class="tab" onclick="switchTab('shop')">Shop</div>
+    <div class="tab" onclick="switchTab('upgrade')">Upgrade</div>
+    <div class="tab" onclick="switchTab('inventory')">Inventory</div>
+    <div class="tab" onclick="switchTab('quests')">Quests</div>
+  </div>
+
+  <div id="battle" class="section tabContent">
     <h2>Hero</h2>
-    <p>Level: <span id="heroLevel">1</span></p>
-    <p>XP: <span id="heroXP">0</span></p>
-    <p>Coins: <span id="coins">0</span></p>
-    <p>Talent Points: <span id="talentPoints">0</span></p>
+    <p>Level: <span id="heroLevel">1</span> | Rank: <span id="heroRank" class="rank">White</span></p>
+    <p>XP: <span id="heroXP">0</span> | Coins: <span id="coins">0</span> | Talent Points: <span id="talentPoints">0</span></p>
     <p>Weapon: <span id="weapon">None</span></p>
+    <div>
+      <h3>Enemy</h3>
+      <p>Name: <span id="enemyName">Slime</span></p>
+      <p>Tier: <span id="enemyTier">Common</span></p>
+      <p>HP: <span id="enemyHP">10</span></p>
+    </div>
+  </div>
+
+  <div id="shop" class="section tabContent hidden">
+    <h2>Shop</h2>
+    <p>Buy upgrades and gear (coming soon)</p>
+  </div>
+
+  <div id="upgrade" class="section tabContent hidden">
+    <h2>Upgrades</h2>
     <button class="button" onclick="levelUpHero()">Level Up (Cost: <span id="levelCost">10</span>)</button>
-  </div>
-
-  <div class="section enemy">
-    <h2>Enemy</h2>
-    <p>Name: <span id="enemyName">Slime</span></p>
-    <p>Tier: <span id="enemyTier">Common</span></p>
-    <p>HP: <span id="enemyHP">10</span></p>
-  </div>
-
-  <div class="section">
-    <h2>Inventory</h2>
-    <div id="inventory" class="inventory"></div>
-  </div>
-
-  <div class="section">
-    <h2>Talent Tree</h2>
     <div class="talents">
       <div class="talent">
         <p>Crit Chance: <span id="critLevel">0</span></p>
@@ -105,63 +128,37 @@
     </div>
   </div>
 
+  <div id="inventory" class="section tabContent hidden">
+    <h2>Inventory</h2>
+    <div id="inventoryList" class="inventory"></div>
+  </div>
+
+  <div id="quests" class="section tabContent hidden">
+    <h2>Quests</h2>
+    <p>Daily tasks and long-term goals coming soon...</p>
+  </div>
+
   <div class="section log" id="log"></div>
 
   <script>
-    const hero = {
-      level: 1,
-      xp: 0,
-      coins: 0,
-      dps: 1,
-      critChance: 0.1,
-      critMultiplier: 2,
-      equipped: null,
-      inventory: [],
-      talentPoints: 0,
-      talents: { crit: 0, gold: 0, dps: 0 }
-    };
+    const ranks = ["White", "Green", "Yellow", "Blue", "Orange", "Purple", "Red", "Black"];
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tabContent');
 
-    const enemyTiers = {
-      Common: 1,
-      Rare: 1.5,
-      Elite: 2.5,
-      Boss: 5
-    };
-
-    const enemyPool = [
-      { name: "Slime", baseHp: 10, reward: 5, tier: "Common" },
-      { name: "Goblin", baseHp: 20, reward: 10, tier: "Common" },
-      { name: "Skeleton", baseHp: 35, reward: 15, tier: "Rare" },
-      { name: "Orc", baseHp: 50, reward: 25, tier: "Rare" },
-      { name: "Wraith", baseHp: 80, reward: 50, tier: "Elite" },
-      { name: "Dragon", baseHp: 150, reward: 100, tier: "Boss" },
-      { name: "Demon Lord", baseHp: 300, reward: 200, tier: "Boss" },
-    ];
-
-    let enemy = getRandomEnemy();
+    let hero = { level: 1, xp: 0, coins: 0, dps: 1, rank: 0, inventory: [] };
+    let enemy = { hp: 10, maxHp: 10, name: "Slime", tier: "Common" };
     let levelCost = 10;
-    let enemiesDefeated = 0;
-
-    const lootTable = [
-      { name: "Iron Sword", type: "weapon", bonus: 1 },
-      { name: "Steel Blade", type: "weapon", bonus: 2 },
-      { name: "Knight's Claymore", type: "weapon", bonus: 4 },
-    ];
 
     function updateUI() {
       document.getElementById("heroLevel").innerText = hero.level;
       document.getElementById("heroXP").innerText = hero.xp;
       document.getElementById("coins").innerText = hero.coins;
-      document.getElementById("talentPoints").innerText = hero.talentPoints;
       document.getElementById("enemyHP").innerText = Math.max(0, Math.floor(enemy.hp));
       document.getElementById("levelCost").innerText = levelCost;
+      document.getElementById("heroRank").innerText = ranks[hero.rank];
       document.getElementById("enemyName").innerText = enemy.name;
       document.getElementById("enemyTier").innerText = enemy.tier;
-      document.getElementById("weapon").innerText = hero.equipped ? `${hero.equipped.name} (+${hero.equipped.bonus})` : 'None';
-      document.getElementById("critLevel").innerText = hero.talents.crit;
-      document.getElementById("goldLevel").innerText = hero.talents.gold;
-      document.getElementById("dpsLevel").innerText = hero.talents.dps;
-      renderInventory();
+      updateInventoryUI();
     }
 
     function logMessage(msg) {
@@ -173,9 +170,12 @@
       if (hero.coins >= levelCost) {
         hero.coins -= levelCost;
         hero.level++;
-        hero.dps += 1;
+        hero.dps++;
         levelCost = Math.floor(levelCost * 1.5);
-        hero.talentPoints++;
+        if (hero.level % 10 === 0 && hero.rank < ranks.length - 1) {
+          hero.rank++;
+          logMessage("Hero evolved to " + ranks[hero.rank] + " rank!");
+        }
         logMessage("Hero leveled up to " + hero.level);
         updateUI();
       } else {
@@ -183,73 +183,53 @@
       }
     }
 
-    function getRandomEnemy() {
-      const isBoss = (enemiesDefeated + 1) % 10 === 0;
-      const tierFilter = isBoss ? 'Boss' : null;
-      const candidates = enemyPool.filter(e => !tierFilter || e.tier === tierFilter);
-      const e = candidates[Math.floor(Math.random() * candidates.length)];
-      const scale = enemyTiers[e.tier];
-      return {
-        name: e.name,
-        tier: e.tier,
-        hp: Math.floor(e.baseHp * scale * (1 + hero.level * 0.1)),
-        maxHp: Math.floor(e.baseHp * scale * (1 + hero.level * 0.1)),
-        reward: Math.floor(e.reward * scale)
-      };
-    }
-
     function attackEnemy() {
-      let baseDamage = hero.dps + hero.talents.dps + (hero.equipped ? hero.equipped.bonus : 0);
-      let isCrit = Math.random() < hero.critChance;
-      let damage = isCrit ? baseDamage * hero.critMultiplier : baseDamage;
-
-      enemy.hp -= damage * 0.2;
+      enemy.hp -= hero.dps * 0.2;
       if (enemy.hp <= 0) {
-        enemiesDefeated++;
-        let reward = enemy.reward + hero.level * 2;
-        reward += Math.floor(reward * (hero.talents.gold * 0.1));
+        let reward = 5 + hero.level * 2;
         hero.coins += reward;
-        hero.xp += 1;
-        logMessage(`Defeated ${enemy.tier} ${enemy.name}! +${reward} coins`);
-
-        if (Math.random() < 0.5) lootDrop();
-
-        enemy = getRandomEnemy();
-      } else if (isCrit) {
-        logMessage("Critical hit! " + Math.floor(damage * 0.2) + " damage.");
+        hero.xp++;
+        logMessage("Enemy defeated! +" + reward + " coins");
+        dropLoot();
+        enemy.maxHp = Math.floor(enemy.maxHp * 1.3);
+        enemy.hp = enemy.maxHp;
       }
       updateUI();
     }
 
-    function lootDrop() {
-      const item = lootTable[Math.floor(Math.random() * lootTable.length)];
-      hero.inventory.push(item);
-      logMessage(`Found loot: ${item.name} (+${item.bonus})`);
+    function dropLoot() {
+      const loot = {
+        name: "Sword of Lvl " + hero.level,
+        type: "weapon",
+        dpsBoost: 1 + Math.floor(Math.random() * 3),
+        rarity: ["Common", "Uncommon", "Rare", "Epic", "Legendary"][Math.floor(Math.random() * 5)]
+      };
+      hero.inventory.push(loot);
+      logMessage("Loot acquired: " + loot.name + " [" + loot.rarity + "]");
     }
 
-    function renderInventory() {
-      const invDiv = document.getElementById("inventory");
-      invDiv.innerHTML = "";
-      hero.inventory.forEach((item, i) => {
-        const itemDiv = document.createElement("div");
-        itemDiv.className = "item";
-        itemDiv.innerHTML = `${item.name}<br>+${item.bonus} DPS<br><button onclick="equipItem(${i})">Equip</button>`;
-        invDiv.appendChild(itemDiv);
+    function updateInventoryUI() {
+      const inventoryList = document.getElementById("inventoryList");
+      inventoryList.innerHTML = "";
+      hero.inventory.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `<strong>${item.name}</strong><br>${item.rarity}<br>DPS +${item.dpsBoost}`;
+        div.onclick = () => {
+          hero.dps += item.dpsBoost;
+          logMessage(`Equipped ${item.name}. DPS increased by ${item.dpsBoost}`);
+          hero.inventory.splice(index, 1);
+          updateUI();
+        };
+        inventoryList.appendChild(div);
       });
     }
 
-    function equipItem(index) {
-      hero.equipped = hero.inventory[index];
-      logMessage(`Equipped ${hero.equipped.name}`);
-      updateUI();
-    }
-
-    function upgradeTalent(type) {
-      if (hero.talentPoints <= 0) return;
-      hero.talentPoints--;
-      hero.talents[type]++;
-      if (type === "crit") hero.critChance += 0.05;
-      updateUI();
+    function switchTab(tabId) {
+      tabs.forEach(tab => tab.classList.remove('active'));
+      tabContents.forEach(tab => tab.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelector(`.tab[onclick*="${tabId}"]`).classList.add('active');
     }
 
     setInterval(attackEnemy, 1000);
@@ -257,4 +237,3 @@
   </script>
 </body>
 </html>
-
