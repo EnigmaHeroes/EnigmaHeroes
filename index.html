@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Legends Idle: Rise of Realms</title>
+  <title>mythic legends: Rise of Realms</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -81,7 +81,7 @@
   </style>
 </head>
 <body>
-  <h1>Legends Idle: Rise of Realms</h1>
+  <h1>Mythic Legends: Rise of Realms</h1>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('battle')">Battle</div>
@@ -92,13 +92,13 @@
   </div>
 
   <div id="battle" class="section tabContent">
-    <h2>Hero</h2>
-    <p>Level: <span id="heroLevel">1</span> | Rank: <span id="heroRank" class="rank">White</span></p>
-    <p>XP: <span id="heroXP">0</span> | Coins: <span id="coins">0</span> | Talent Points: <span id="talentPoints">0</span></p>
+    <h2>Ragnar</h2>
+    <p>Level: <span id="RagnarLevel">1</span> | Rank: <span id="RagnarRank" class="rank">White</span></p>
+    <p>XP: <span id="RagnarXP">0</span> | Coins: <span id="coins">0</span> | Talent Points: <span id="talentPoints">0</span></p>
     <p>Weapon: <span id="weapon">None</span></p>
     <div>
       <h3>Enemy</h3>
-      <p>Name: <span id="enemyName">Slime</span></p>
+      <p>Name: <span id="enemyName">Draugr</span></p>
       <p>Tier: <span id="enemyTier">Common</span></p>
       <p>HP: <span id="enemyHP">10</span></p>
     </div>
@@ -150,12 +150,12 @@
     let levelCost = 10;
 
     function updateUI() {
-      document.getElementById("heroLevel").innerText = hero.level;
-      document.getElementById("heroXP").innerText = hero.xp;
+      document.getElementById("RagnarLevel").innerText = hero.level;
+      document.getElementById("RagnarXP").innerText = hero.xp;
       document.getElementById("coins").innerText = hero.coins;
       document.getElementById("enemyHP").innerText = Math.max(0, Math.floor(enemy.hp));
       document.getElementById("levelCost").innerText = levelCost;
-      document.getElementById("heroRank").innerText = ranks[hero.rank];
+      document.getElementById("RagnarRank").innerText = ranks[hero.rank];
       document.getElementById("enemyName").innerText = enemy.name;
       document.getElementById("enemyTier").innerText = enemy.tier;
       updateInventoryUI();
@@ -166,17 +166,17 @@
       log.innerHTML = msg + "<br>" + log.innerHTML;
     }
 
-    function levelUpHero() {
-      if (hero.coins >= levelCost) {
-        hero.coins -= levelCost;
-        hero.level++;
-        hero.dps++;
+    function levelUpRagnar() {
+      if (Ragnar.coins >= levelCost) {
+        Ragnar.coins -= levelCost;
+        Ragnar.level++;
+        Ragnar.dps++;
         levelCost = Math.floor(levelCost * 1.5);
-        if (hero.level % 10 === 0 && hero.rank < ranks.length - 1) {
-          hero.rank++;
-          logMessage("Hero evolved to " + ranks[hero.rank] + " rank!");
+        if (Ragnar.level % 10 === 0 && Ragnar.rank < ranks.length - 1) {
+          Ragnar.rank++;
+          logMessage("Ragnar evolved to " + ranks[Ragnar.rank] + " rank!");
         }
-        logMessage("Hero leveled up to " + hero.level);
+        logMessage("Ragnar leveled up to " + Ragnar.level);
         updateUI();
       } else {
         logMessage("Not enough coins to level up.");
@@ -184,9 +184,9 @@
     }
 
     function attackEnemy() {
-      enemy.hp -= hero.dps * 0.2;
+      enemy.hp -= Ragnar.dps * 0.2;
       if (enemy.hp <= 0) {
-        let reward = 5 + hero.level * 2;
+        let reward = 5 + Ragnar.level * 2;
         hero.coins += reward;
         hero.xp++;
         logMessage("Enemy defeated! +" + reward + " coins");
@@ -199,7 +199,7 @@
 
     function dropLoot() {
       const loot = {
-        name: "Sword of Lvl " + hero.level,
+        name: "Sword of Lvl " + Ragnar.level,
         type: "weapon",
         dpsBoost: 1 + Math.floor(Math.random() * 3),
         rarity: ["Common", "Uncommon", "Rare", "Epic", "Legendary"][Math.floor(Math.random() * 5)]
@@ -211,12 +211,12 @@
     function updateInventoryUI() {
       const inventoryList = document.getElementById("inventoryList");
       inventoryList.innerHTML = "";
-      hero.inventory.forEach((item, index) => {
+      Ragnar.inventory.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "item";
         div.innerHTML = `<strong>${item.name}</strong><br>${item.rarity}<br>DPS +${item.dpsBoost}`;
         div.onclick = () => {
-          hero.dps += item.dpsBoost;
+          Ragnar.dps += item.dpsBoost;
           logMessage(`Equipped ${item.name}. DPS increased by ${item.dpsBoost}`);
           hero.inventory.splice(index, 1);
           updateUI();
